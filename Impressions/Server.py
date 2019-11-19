@@ -66,6 +66,11 @@ def find_events_by_username(username):
     return events
 
 
+def get_public_events(page):
+    public_events = Event.query.filter_by(is_private=False).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
+    return public_events
+
+
 def add_user(username,password):
     if not get_user_by_username(username):
         user = User(username,password)
@@ -89,7 +94,7 @@ def add_event(author,content,event_date,is_private):
 
 @app.route('/login',methods=["GET","POST"])
 def login():
-#     if session["username"]:
+#     if session["userne"]:
 #         return redirect(url_for("home"))
     if request.method == "POST":
         username = request.json["username"]
@@ -141,10 +146,12 @@ def post_event():
         return redirect(url_for("login"))
 
 
-@app.route('/ground')
+@app.route('/ground',methods=["GET"])
 def ground():
+
     return "成功"
     # return render_template("ground.html")
+
 
 @app.route('/')
 def home():
@@ -168,7 +175,14 @@ db.create_all()
 # db.session.add(event1)
 # db.session.add(event2)
 # db.session.commit()
-if __name__ == "__main__":
-    app.run(port=8000)
-# add_event("bbb","111111111",to_datetime("2019/11/19 12:40"),False)
+# if __name__ == "__main__":
+#     app.run(port=8000)
+# add_event("bbb","9999999999999",to_datetime("2019/11/19 12:40"),False)
+# add_event("bbb","44444444444",to_datetime("2019/11/19 12:40"),False)
+# add_event("bbb","5555555555",to_datetime("2019/11/19 12:40"),False)
+# add_event("bbb","666666666",to_datetime("2019/11/19 12:40"),False)
+# add_event("bbb","7777777",to_datetime("2019/11/19 12:40"),False)
 # add_event("bbb","1222222",to_datetime("2019/11/19 12:59"),False)
+public_events = get_public_events(2)
+for pe in public_events:
+    print(pe.content)
