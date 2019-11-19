@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+<body>
+<div>
+    <ul style="list-style-type: none">
+        {% for public_event in public_events%}
+        <li>
+            <div>{{public_event.content}}</div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<p>内容数:{{length}}</p>
+{% if length < 5 %}
+<p>已经是最后一页</p>
+{% endif %}
+</body>
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
-
-</body>
 </html>

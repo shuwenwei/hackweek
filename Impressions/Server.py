@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect,url_for,session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required,login_user
 import datetime
@@ -148,9 +148,18 @@ def post_event():
 
 @app.route('/ground',methods=["GET"])
 def ground():
-
-    return "成功"
-    # return render_template("ground.html")
+    page_number = request.args.get("pageNumber")
+    print(page_number)
+    if not page_number:
+        page_number = 1
+    else:
+        page_number = int(page_number)
+    print(page_number)
+    public_events = get_public_events(page_number)
+    length = len(public_events)
+    if length == 0:
+        return redirect(url_for("ground",pageNumber=1))
+    return render_template("ground.html",public_events=public_events,length=length)
 
 
 @app.route('/')
@@ -175,14 +184,15 @@ db.create_all()
 # db.session.add(event1)
 # db.session.add(event2)
 # db.session.commit()
-# if __name__ == "__main__":
-#     app.run(port=8000)
+if __name__ == "__main__":
+    app.run(port=8000)
 # add_event("bbb","9999999999999",to_datetime("2019/11/19 12:40"),False)
 # add_event("bbb","44444444444",to_datetime("2019/11/19 12:40"),False)
 # add_event("bbb","5555555555",to_datetime("2019/11/19 12:40"),False)
 # add_event("bbb","666666666",to_datetime("2019/11/19 12:40"),False)
 # add_event("bbb","7777777",to_datetime("2019/11/19 12:40"),False)
-# add_event("bbb","1222222",to_datetime("2019/11/19 12:59"),False)
-public_events = get_public_events(2)
-for pe in public_events:
-    print(pe.content)
+# add_event("bbb","1qaaaaaaaaaaaa",to_datetime("2019/11/19 12:59"),False)
+# public_events = get_public_events(2)
+# for pe in public_events:
+#     pass
+# print(pe.content)
