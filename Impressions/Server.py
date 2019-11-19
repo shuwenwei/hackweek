@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import login_required,login_user
 import datetime
 
 from flask_cors import CORS
@@ -69,6 +68,16 @@ def find_events_by_username(username):
 def get_public_events(page):
     public_events = Event.query.filter_by(is_private=False).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
     return public_events
+
+
+def get_user_all_events(page,username):
+    user_events = Event.query.filter_by(author=username).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
+    return user_events
+
+
+def get_user_public_events(page,username):
+    user_public_events = Event.query.filter_by(author=username,is_private=False).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
+    return user_public_events
 
 
 def add_user(username,password):
@@ -162,25 +171,41 @@ def ground():
     return render_template("ground.html",public_events=public_events,length=length)
 
 
+@app.route('/history',methods=["GET"])
+def get_content_history():
+    username = request.args.get("username")
+    page_number = request.args.get("pageNumber")
+    if not page_number:
+        page_number = 1
+    else:
+        page_number = int(page_number)
+    if "username" in session and session["username"] == username:
+        events = get_user_all_events(page_number,username)
+    else:
+        events = get_user_public_events(page_number,username)
+    length = len(events)
+    if length == 0:
+        return redirect(url_for("ground", pageNumber=1,username=username))
+    return render_template("history.html",events=events,length=length)
+
+
 @app.route('/')
 def home():
     username = session.get("username")
     if username:
-        print(username + "saved")
         user = get_user_by_username(username)
         return render_template("home.html",user=user)
     else:
-        print(username)
         return redirect(url_for("login"))
 
-db.create_all()
+# db.create_all()
 # user1 = User("aaa","123456")
 # user2 = User("bbb","12345")
 # db.session.add(user1)
 # db.session.add(user2)
 # db.session.commit()
-# event1 = Event("aaa","aejfafae",datetime.date.today(),to_datetime("2019/11/19 12:40"),True)
-# event2 = Event("aaa","afafeawafawf",datetime.date.today(),to_datetime("2019/11/19 12:41"),True)
+# event1 = Event("aaa","aejfafae",datetime.date.today(),to_datetime("2019/11/19 12:40"),False)
+# event2 = Event("aaa","afafeawafawf",datetime.date.today(),to_datetime("2019/11/19 12:41"),False)
 # db.session.add(event1)
 # db.session.add(event2)
 # db.session.commit()
