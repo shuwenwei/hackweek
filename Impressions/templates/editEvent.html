@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>EditEvent</title>
+</head>
+<body>
+<input type="submit" onclick="test()">
+<script>
+    function test() {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST","http://127.0.0.1:8000/postEvent",false);
+        xhr.setRequestHeader("Content-Type","application/json");
+        let params = {
+            "content":"afjpawjfpawf",
+            "isPrivate":true,
+            "eventDate":"2019/11/19 13:40"
+        };
+        xhr.send(JSON.stringify(params));
+    }
+</script>
+</body>
+</html>

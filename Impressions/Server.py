@@ -1,6 +1,8 @@
 from flask import Flask,render_template,request,redirect,url_for,session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required,login_user
+import datetime
+
 from flask_cors import CORS
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/testdb?charset=utf8"
@@ -27,37 +29,77 @@ class User(db.Model):
 
 class Event(db.Model):
     __tablename__ = "events"
+    id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     author = db.Column(db.String(16),nullable=False)
     content = db.Column(db.String(16),nullable=False)
-    date = db.Column(db.DateTime,nullable=False)
+    post_date = db.Column(db.DateTime,nullable=False)
+    event_date = db.Column(db.DateTime,nullable=False)
     is_private = db.Column(db.Boolean,nullable=False)
 
-    def __init__(self,author,content,date,is_private):
+    def __init__(self,author,content,post_date,event_date,is_private):
         self.author = author
         self.content = content
-        self.date = date
+        self.post_date = post_date
+        self.event_date = event_date
         self.is_private = is_private
 
     def get_dict(self):
         return {
             "author":self.author,
             "content":self.content,
-            "date":self.date
+            "event_date":self.event_date,
+            "post_date":self.post_date
         }
 
 
+def get_user_by_username(username):
+    return User.query.filter_by(username=username).first()
+
+
 def get_password(username):
-    user = User.query.filter_by(username=username).first()
+    user = get_user_by_username(username)
     return str(user.password)
+
+
+def find_events_by_username(username):
+    events = Event.query.filter_by(author=username).all()
+    return events
+
+
+def add_user(username,password):
+    if not get_user_by_username(username):
+        user = User(username,password)
+        db.session.add(user)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def to_datetime(s):
+    date = datetime.datetime.strptime(s,"%Y/%m/%d %H:%M")
+    return date
+
+
+def add_event(author,content,event_date,is_private):
+    event = Event(author,content,datetime.datetime.now(),event_date,is_private)
+    db.session.add(event)
+    db.session.commit()
+
 
 @app.route('/login',methods=["GET","POST"])
 def login():
+#     if session["username"]:
+#         return redirect(url_for("home"))
     if request.method == "POST":
         username = request.json["username"]
         password = request.json["password"]
-        if password != get_password(username):
+        if str(username).__len__() == 0:
+            return "用户名为空",0
+        elif password != get_password(username):
             return "用户名或密码错误",0
         else:
+            session["username"] = username
             return redirect("home"),1
     else:
         return render_template("login.html")
@@ -66,11 +108,67 @@ def login():
 @app.route('/register',methods=["GET","POST"])
 def register():
     if request.method == "POST":
-        pass
+        username = request.json["username"]
+        password = request.json["password"]
+        if add_user(username,password):
+            return redirect("login")
+        else:
+            return "注册失败"
     else:
-
         return render_template("register.html")
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route('/postEvent',methods=["POST","GET"])
+def post_event():
+    if session["username"]:
+        if request.method == "GET":
+            return render_template("editEvent.html")
+        e = request.json
+        author = session["username"]
+        content = e["content"]
+        is_private = e["isPrivate"]
+        # 接收eventDate为字符串格式 %Y/%m/%d %H:%M
+        event_date = to_datetime(e["eventDate"])
+        add_event(author,content,event_date,is_private)
+        return redirect(url_for("ground"))
+    else:
+        return redirect(url_for("login"))
+
+
+@app.route('/ground')
+def ground():
+    return "成功"
+    # return render_template("ground.html")
 
 @app.route('/')
 def home():
-    return render_template("")
+    username = session.get("username")
+    if username:
+        print(username + "saved")
+        user = get_user_by_username(username)
+        return render_template("home.html",user=user)
+    else:
+        print(username)
+        return redirect(url_for("login"))
+
+db.create_all()
+# user1 = User("aaa","123456")
+# user2 = User("bbb","12345")
+# db.session.add(user1)
+# db.session.add(user2)
+# db.session.commit()
+# event1 = Event("aaa","aejfafae",datetime.date.today(),to_datetime("2019/11/19 12:40"),True)
+# event2 = Event("aaa","afafeawafawf",datetime.date.today(),to_datetime("2019/11/19 12:41"),True)
+# db.session.add(event1)
+# db.session.add(event2)
+# db.session.commit()
+if __name__ == "__main__":
+    app.run(port=8000)
+# add_event("bbb","111111111",to_datetime("2019/11/19 12:40"),False)
+# add_event("bbb","1222222",to_datetime("2019/11/19 12:59"),False)
