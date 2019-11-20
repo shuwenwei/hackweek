@@ -7,7 +7,7 @@ from itsdangerous import BadSignature,SignatureExpired
 
 from flask_cors import CORS
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/testdb?charset=utf8"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test1?charset=utf8"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.secret_key = b"1ri1#0f11afejop"
 auth = HTTPBasicAuth
@@ -143,8 +143,8 @@ def to_datetime(s):
     return date
 
 
-def add_event(author,content,event_date,is_private,place_nuumber):
-    event = Event(author,content,datetime.datetime.now(),event_date,is_private,place_nuumber)
+def add_event(author,content,event_date,is_private,place_number,is_story):
+    event = Event(author,content,datetime.datetime.now(),event_date,is_private,place_number,is_story)
     db.session.add(event)
     db.session.commit()
 
@@ -195,8 +195,9 @@ def post_event():
         is_private = request.json["isPrivate"]
         # 接收eventDate为字符串格式 %Y/%m/%d %H:%M
         event_date = to_datetime(request.json["eventDate"])
+        is_story = request.json["isStory"]
         place_number = request.json["placeNumber"]
-        add_event(author,content,event_date,is_private,int(place_number))
+        add_event(author,content,event_date,is_private,int(place_number),is_story)
         return json.dumps({
             "message":"发送成功",
             "status":1
@@ -244,6 +245,11 @@ def user_history():
     user = check_token(token)
     username = request.args.get("username")
     page_number = request.args.get("pageNumber")
+    if not get_user_by_username(username):
+        return json.dumps({
+            "message":"用户名不存在",
+            "code":0
+        })
     if not page_number or int(page_number) < 1:
         page_number = 1
     else:
@@ -275,6 +281,6 @@ def user_history():
             "events":events_to_dicts(events)
         })
 
-
+db.create_all()
 if __name__ == "__main__":
     app.run(port=8000)
