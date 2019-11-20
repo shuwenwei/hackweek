@@ -1,9 +1,10 @@
-from flask import Flask , request, json
+from flask import Flask, request, json
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 from flask_httpauth import HTTPBasicAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature,SignatureExpired
+from werkzeug.security import check_password_hash,generate_password_hash
 
 from flask_cors import CORS
 app = Flask(__name__)
@@ -17,11 +18,11 @@ CORS(app)
 class User(db.Model):
     __tablename__ = "users"
     username = db.Column(db.String(16),nullable=False,primary_key=True)
-    password = db.Column(db.String(16),nullable=False)
+    password = db.Column(db.String(128),nullable=False)
 
     def __init__(self,username,password):
         self.username = username
-        self.password = password
+        self.password = generate_password_hash(password)
 
     def get_dict(self):
         return {
@@ -34,7 +35,7 @@ class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     author = db.Column(db.String(16),nullable=False)
-    content = db.Column(db.String(16),nullable=False)
+    content = db.Column(db.Text(4000),nullable=False)
     post_date = db.Column(db.DateTime,nullable=False)
     event_date = db.Column(db.DateTime,nullable=False)
     is_private = db.Column(db.Boolean,nullable=False)
@@ -100,11 +101,6 @@ def get_user_all_events(page,username):
     return user_events
 
 
-# ------------------------------------------
-def verify_token(token):
-    pass
-
-
 def generate_token(user):
     serializer = Serializer(app.secret_key,expires_in=60*60*24*7)
     token = serializer.dumps({"username":user.username,"password":user.password})
@@ -153,7 +149,8 @@ def add_event(author,content,event_date,is_private,place_number,is_story):
 def login():
     username = request.json["username"]
     password = request.json["password"]
-    if password == get_password(username):
+    # if password == get_password(username):
+    if check_password_hash(get_password(username),password):
         token = generate_token(get_user_by_username(username))
         return json.dumps({
             "token":token,
@@ -169,19 +166,18 @@ def login():
 
 @app.route('/api/register',methods=["POST"])
 def register():
-    if request.method == "POST":
-        username = request.json["username"]
-        password = request.json["password"]
-        if add_user(username,password):
-            return json.dumps({
-                "message":"注册成功",
-                "status":1
-            })
-        else:
-            return json.dumps({
-                "message":"注册失败",
-                "status":0
-            })
+    username = request.json["username"]
+    password = request.json["password"]
+    if add_user(username,password):
+        return json.dumps({
+            "message":"注册成功",
+            "status":1
+        })
+    else:
+        return json.dumps({
+            "message":"注册失败",
+            "status":0
+        })
 
 
 @app.route('/api/postEvent',methods=["POST"])
