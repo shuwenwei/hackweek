@@ -158,18 +158,21 @@ def post_event():
 @app.route('/ground',methods=["GET"])
 def ground():
     page_number = request.args.get("pageNumber")
-    print(page_number)
-    if not page_number:
+    if not page_number or int(page_number) < 0:
         page_number = 1
     else:
         page_number = int(page_number)
-    print(page_number)
     public_events = get_public_events(page_number)
-    length = len(public_events)
-    if length == 0:
+    # 待修改
+    # --------------------------------------------
+    current_length = len(public_events)
+    next_length = len(get_public_events(page_number+1))
+    if current_length == 0:
         return redirect(url_for("ground",pageNumber=1))
-    return render_template("ground.html",public_events=public_events,length=length)
-
+    if next_length == 0 and current_length == 5:
+        return render_template("ground.html", public_events=public_events, length=current_length,next_length=next_length)
+    return render_template("ground.html",public_events=public_events,length=current_length)
+# --------------------------------------------------
 
 @app.route('/history',methods=["GET"])
 def get_content_history():
@@ -184,6 +187,7 @@ def get_content_history():
     else:
         events = get_user_public_events(page_number,username)
     length = len(events)
+    # 待修改
     if length == 0:
         return redirect(url_for("ground", pageNumber=1,username=username))
     return render_template("history.html",events=events,length=length)
