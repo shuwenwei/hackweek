@@ -8,12 +8,28 @@ from werkzeug.security import check_password_hash,generate_password_hash
 
 from flask_cors import CORS
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test1?charset=utf8"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test2?charset=utf8"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.secret_key = b"1ri1#0f11afejop"
 auth = HTTPBasicAuth
 db = SQLAlchemy(app)
 CORS(app)
+
+
+class Comment(db.Model):
+    __tablename__ = "comments"
+    comment_id = db.Column(db.Integer,primary_key=True,autoincrement=True)
+    comment_content = db.Column(db.Text(1000),nullable=False)
+    comment_author = db.Column(db.String(16),nullable=False)
+    event_id = db.Column(db.Integer,db.ForeignKey("events.id"))
+    event = db.relationship("Event",backref=db.backref("event_comments"))
+
+    def get_dict(self):
+        return {
+            "comment_content":self.comment_content,
+            "comment_author":self.comment_author
+        }
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -38,11 +54,12 @@ class Event(db.Model):
     content = db.Column(db.Text(4000),nullable=False)
     post_date = db.Column(db.DateTime,nullable=False)
     event_date = db.Column(db.DateTime,nullable=False)
+    title = db.Column(db.String(50),nullable=False)
     is_private = db.Column(db.Boolean,nullable=False)
     place_number = db.Column(db.Integer,nullable=False)
     is_story = db.Column(db.Integer,nullable=False)
 
-    def __init__(self,author,content,post_date,event_date,is_private,place_number,is_story):
+    def __init__(self,author,content,post_date,event_date,is_private,place_number,is_story,title):
         self.author = author
         self.content = content
         self.post_date = post_date
@@ -50,6 +67,7 @@ class Event(db.Model):
         self.is_private = is_private
         self.place_number = place_number
         self.is_story = is_story
+        self.title = title
 
     def get_dict(self):
         return {
@@ -59,7 +77,8 @@ class Event(db.Model):
             "post_date":self.post_date,
             "is_private":self.is_private,
             "place_number":self.place_number,
-            "is_story":self.is_story
+            "is_story":self.is_story,
+            "title":self.title
         }
 
 
@@ -139,11 +158,27 @@ def to_datetime(s):
     return date
 
 
-def add_event(author,content,event_date,is_private,place_number,is_story):
-    event = Event(author,content,datetime.datetime.now(),event_date,is_private,place_number,is_story)
+def add_event(author,content,event_date,is_private,place_number,is_story,title):
+    event = Event(author,content,datetime.datetime.now(),event_date,is_private,place_number,is_story,title)
     db.session.add(event)
     db.session.commit()
 
+
+@app.route('/api/getComments',methods=["GET"])
+def get_comments():
+    event_id = request.args.get("eid")
+    event = Event.query.filter_by(id=event_id).first()
+    if event:
+        return json.dumps({
+            "comments":event.event_comments,
+            "message":"获取成功",
+            "status":1
+        })
+    else:
+        return json.dumps({
+            "message":"获取失败",
+            "status":0
+        })
 
 @app.route('/api/token',methods=["POST"])
 def login():
@@ -192,8 +227,9 @@ def post_event():
         # 接收eventDate为字符串格式 %Y/%m/%d %H:%M
         event_date = to_datetime(request.json["eventDate"])
         is_story = request.json["isStory"]
+        title = request.json["title"]
         place_number = request.json["placeNumber"]
-        add_event(author,content,event_date,is_private,int(place_number),is_story)
+        add_event(author,content,event_date,is_private,int(place_number),is_story,title)
         return json.dumps({
             "message":"发送成功",
             "status":1
@@ -277,6 +313,26 @@ def user_history():
             "events":events_to_dicts(events)
         })
 
-db.create_all()
-if __name__ == "__main__":
-    app.run(port=8000)
+# db.create_all()
+#
+# if __name__ == "__main__":
+#     app.run(port=8000,host="0.0.0.0")
+# event1 = Event("user1","c1",datetime.datetime.now(),datetime.datetime.now(),True,1,True,"title1")
+# event2 = Event("user1","c2",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title2")
+# event3 = Event("user2","c3",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title3")
+# db.session.add(event1)
+# db.session.add(event2)
+# db.session.add(event3)
+# db.session.commit()
+# comment1 = Comment(comment_author="user1",comment_content="cc1",event_id=1)
+# comment2 = Comment(comment_author="user1",comment_content="cc2",event_id=1)
+# comment3 = Comment(comment_author="user1",comment_content="cc3",event_id=2)
+# comment4 = Comment(comment_author="user2",comment_content="cc3",event_id=1)
+# db.session.add(comment1)
+# db.session.add(comment2)
+# db.session.add(comment3)
+# db.session.add(comment4)
+# db.session.commit()
+event = Event.query.filter_by(id=1).first()
+for c in event.event_comments:
+    print(c.get_dict())
