@@ -31,11 +31,15 @@
 ## /api/postEvent
 #### method:POST
 发送  
+####headers: Authorization:passport 返回的token
 eventDate为字符串格式为 %Y/%m/%d %H:%M    
 {
 "eventDate":"2019/11/20 20:00",  
 "content":"",  
-"isPrivate":(true,false)  
+"title":"",
+placeNumber:(int),  
+"isPrivate":(true,false) ,
+"isStory":(true,false) 
 }  
 返回  
 {
