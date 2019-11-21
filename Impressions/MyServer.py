@@ -158,6 +158,12 @@ def to_datetime(s):
     return date
 
 
+def add_comment(eid,content,author):
+    comment = Comment(event_id=eid,comment_author=author,comment_content=content)
+    db.session.add(comment)
+    db.session.commit()
+
+
 def add_event(author,content,event_date,is_private,place_number,is_story,title):
     event = Event(author,content,datetime.datetime.now(),event_date,is_private,place_number,is_story,title)
     db.session.add(event)
@@ -167,10 +173,11 @@ def add_event(author,content,event_date,is_private,place_number,is_story,title):
 @app.route('/api/getComments',methods=["GET"])
 def get_comments():
     event_id = request.args.get("eid")
+    event_id = int(event_id)
     event = Event.query.filter_by(id=event_id).first()
     if event:
         return json.dumps({
-            "comments":event.event_comments,
+            "comments":[comment.get_dict() for comment in event.event_comments],
             "message":"获取成功",
             "status":1
         })
@@ -179,6 +186,33 @@ def get_comments():
             "message":"获取失败",
             "status":0
         })
+
+
+@app.route('/api/postComment',methods=["POST"])
+def post_comment():
+    token = request.headers["Authorization"][9:]
+    user = check_token(token)
+    if user:
+        comment_author = user.username
+        event_id = request.json["eid"]
+        comment_content = request.json["commentContent"]
+        try:
+            add_comment(event_id,comment_content,comment_author)
+        except:
+            return json.jsonify({
+                "message":"请求数据错误",
+                "status":0
+            })
+        return json.jsonify({
+            "message":"发送成功",
+            "status":1
+        })
+    else:
+        return json.jsonify({
+            "message":"发送失败",
+            "status":0
+        })
+
 
 @app.route('/api/token',methods=["POST"])
 def login():
@@ -315,8 +349,8 @@ def user_history():
 
 # db.create_all()
 #
-# if __name__ == "__main__":
-#     app.run(port=8000,host="0.0.0.0")
+if __name__ == "__main__":
+    app.run(port=8000,host="0.0.0.0")
 # event1 = Event("user1","c1",datetime.datetime.now(),datetime.datetime.now(),True,1,True,"title1")
 # event2 = Event("user1","c2",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title2")
 # event3 = Event("user2","c3",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title3")
@@ -333,6 +367,6 @@ def user_history():
 # db.session.add(comment3)
 # db.session.add(comment4)
 # db.session.commit()
-event = Event.query.filter_by(id=1).first()
-for c in event.event_comments:
-    print(c.get_dict())
+# event = Event.query.filter_by(id=1).first()
+# for c in event.event_comments:
+#     print(c.get_dict())
