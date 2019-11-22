@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash,generate_password_hash
 
 from flask_cors import CORS
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test2?charset=utf8"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.secret_key = b"1ri1#0f11afejop"
 auth = HTTPBasicAuth
@@ -20,14 +20,16 @@ class Comment(db.Model):
     __tablename__ = "comments"
     comment_id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     comment_content = db.Column(db.Text(1000),nullable=False)
-    comment_author = db.Column(db.String(16),nullable=False)
+    comment_author = db.Column(db.String(16),db.ForeignKey("users.username"))
     event_id = db.Column(db.Integer,db.ForeignKey("events.id"))
     event = db.relationship("Event",backref=db.backref("event_comments"))
+    author = db.relationship("User",backref=db.backref("author_comments"))
 
     def get_dict(self):
         return {
             "comment_content":self.comment_content,
-            "comment_author":self.comment_author
+            "comment_author":self.comment_author,
+            "title_of_event":Event.query.filter_by(id=self.event_id).first().title
         }
 
 
@@ -78,7 +80,8 @@ class Event(db.Model):
             "is_private":self.is_private,
             "place_number":self.place_number,
             "is_story":self.is_story,
-            "title":self.title
+            "title":self.title,
+            "event_id":self.id
         }
 
 
@@ -160,6 +163,7 @@ def to_datetime(s):
 
 def add_comment(eid,content,author):
     comment = Comment(event_id=eid,comment_author=author,comment_content=content)
+    comment.author_username = author
     db.session.add(comment)
     db.session.commit()
 
@@ -170,8 +174,25 @@ def add_event(author,content,event_date,is_private,place_number,is_story,title):
     db.session.commit()
 
 
-@app.route('/api/getComments',methods=["GET"])
-def get_comments():
+@app.route('/api/user/comments',methods=["GET"])
+def get_user_comments():
+    if "username" in request.args:
+        username = request.args.get("username")
+        user = get_user_by_username(username)
+        return json.jsonify({
+            "message":"获取成功",
+            "status":1,
+            "comments":[comment.get_dict() for comment in user.author_comments]
+        })
+    else:
+        return json.jsonify({
+            "message":"获取失败",
+            "status":0,
+        })
+
+
+@app.route('/api/event/comments',methods=["GET"])
+def get_event_comments():
     event_id = request.args.get("eid")
     event_id = int(event_id)
     event = Event.query.filter_by(id=event_id).first()
@@ -188,7 +209,7 @@ def get_comments():
         })
 
 
-@app.route('/api/postComment',methods=["POST"])
+@app.route('/api/event/comment',methods=["POST"])
 def post_comment():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
@@ -249,7 +270,7 @@ def register():
         })
 
 
-@app.route('/api/postEvent',methods=["POST"])
+@app.route('/api/event',methods=["POST"])
 def post_event():
     token = request.headers["Authorization"][9:]
     print(token)
@@ -275,7 +296,7 @@ def post_event():
         })
 
 
-@app.route('/api/getGroundEvents',methods=["GET"])
+@app.route('/api/ground/events',methods=["GET"])
 def ground():
     page_number = request.args.get("pageNumber")
     if not page_number or int(page_number) < 1:
@@ -305,7 +326,7 @@ def ground():
     })
 
 
-@app.route('/api/getHistory',methods=["GET"])
+@app.route('/api/user/history',methods=["GET"])
 def user_history():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
@@ -347,7 +368,7 @@ def user_history():
             "events":events_to_dicts(events)
         })
 
-# db.create_all()
+db.create_all()
 #
 if __name__ == "__main__":
     app.run(port=8000,host="0.0.0.0")
