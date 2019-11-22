@@ -1,17 +1,15 @@
-from flask import Flask, request, json
+from flask import Flask,request,json
 from flask_sqlalchemy import SQLAlchemy
-import datetime
-from flask_httpauth import HTTPBasicAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature,SignatureExpired
+import datetime
+from flask_cors import CORS
 from werkzeug.security import check_password_hash,generate_password_hash
 
-from flask_cors import CORS
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.secret_key = b"1ri1#0f11afejop"
-auth = HTTPBasicAuth
 db = SQLAlchemy(app)
 CORS(app)
 
@@ -266,6 +264,27 @@ def register():
     else:
         return json.dumps({
             "message":"注册失败",
+            "status":0
+        })
+
+
+@app.route('/api/password',methods=["POST"])
+def modify_password():
+    username = request.json["username"]
+    password = request.json["password"]
+    new_password = request.json["newPassword"]
+    if check_password_hash(get_password(username), password):
+        user = get_user_by_username(username)
+        user.password = generate_password_hash(new_password)
+        db.session.add(user)
+        db.session.commit()
+        return json.jsonify({
+            "message":"修改成功",
+            "status":1
+        })
+    else:
+        return json.jsonify({
+            "message":"修改失败",
             "status":0
         })
 
