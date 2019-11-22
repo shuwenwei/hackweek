@@ -270,3 +270,25 @@ headers
   "status": 0
 }
 ```
+## /api/password 
+#### method : POST
+```json
+{
+  "username": "aaa",
+  "password": "123456",
+  "newPassword": "12345"
+}
+```
+响应  
+```json
+{
+  "message": "修改成功",
+  "status": 1
+}
+```
+```json
+{
+  "message": "修改失败",
+  "status": 0
+}
+```
