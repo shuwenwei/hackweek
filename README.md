@@ -271,7 +271,7 @@ headers
 }
 ```
 ## /api/password 
-#### method : POST
+#### method：PUT
 ```json
 {
   "username": "aaa",
