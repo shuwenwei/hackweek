@@ -172,7 +172,7 @@ def add_event(author,content,event_date,is_private,place_number,is_story,title):
     db.session.commit()
 
 
-@app.route('/auth/user/comments',methods=["GET"])
+@app.route('/api/user/comments',methods=["GET"])
 def get_user_comments():
     if "username" in request.args:
         username = request.args.get("username")
@@ -214,7 +214,7 @@ def check_username():
     })
 
 
-@app.route('/auth/event/comments',methods=["GET"])
+@app.route('/api/event/comments',methods=["GET"])
 def get_event_comments():
     event_id = request.args.get("eid")
     event_id = int(event_id)
@@ -232,7 +232,7 @@ def get_event_comments():
         })
 
 
-@app.route('/auth/event/comment',methods=["POST"])
+@app.route('/api/event/comment',methods=["POST"])
 def post_comment():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
@@ -258,7 +258,7 @@ def post_comment():
         })
 
 
-@app.route('/auth/token',methods=["POST"])
+@app.route('/api/token',methods=["POST"])
 def login():
     username = request.json["username"]
     password = request.json["password"]
@@ -277,7 +277,7 @@ def login():
         })
 
 
-@app.route('/auth/register',methods=["POST"])
+@app.route('/api/register',methods=["POST"])
 def register():
     username = request.json["username"]
     password = request.json["password"]
@@ -293,7 +293,7 @@ def register():
         })
 
 
-@app.route('/auth/password',methods=["POST"])
+@app.route('/api/password',methods=["PUT"])
 def modify_password():
     username = request.json["username"]
     password = request.json["password"]
@@ -314,7 +314,7 @@ def modify_password():
         })
 
 
-@app.route('/auth/event',methods=["POST"])
+@app.route('/api/event',methods=["POST"])
 def post_event():
     token = request.headers["Authorization"][9:]
     print(token)
@@ -340,7 +340,7 @@ def post_event():
         })
 
 
-@app.route('/auth/ground/events',methods=["GET"])
+@app.route('/api/ground/events',methods=["GET"])
 def ground():
     page_number = request.args.get("pageNumber")
     if not page_number or int(page_number) < 1:
@@ -370,7 +370,7 @@ def ground():
     })
 
 
-@app.route('/auth/user/history',methods=["GET"])
+@app.route('/api/user/history',methods=["GET"])
 def user_history():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
