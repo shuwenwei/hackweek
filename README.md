@@ -74,7 +74,7 @@ headers
 {
   "isPrivate": true,
   "isStory": true,
-  "eventDate": "2019/11/22 11:00",
+  "eventDate": "2019-11-22 11:00",
   "content": "ccc",
   "title": "ttt",
   "placeNumber": 1
