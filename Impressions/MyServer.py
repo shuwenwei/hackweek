@@ -172,7 +172,7 @@ def add_event(author,content,event_date,is_private,place_number,is_story,title):
     db.session.commit()
 
 
-@app.route('/api/user/comments',methods=["GET"])
+@app.route('/auth/user/comments',methods=["GET"])
 def get_user_comments():
     if "username" in request.args:
         username = request.args.get("username")
@@ -189,7 +189,32 @@ def get_user_comments():
         })
 
 
-@app.route('/api/event/comments',methods=["GET"])
+@app.route('/api/username',methods=["GET"])
+def check_username():
+    if "username" in request.args:
+        username = request.args.get("username")
+        if len(username) == 0:
+            return json.jsonify({
+                "message":"用户名不能为空",
+                "status":0
+            })
+        elif get_user_by_username(username):
+            return json.jsonify({
+                "message":"用户名已存在",
+                "status":0
+            })
+        else:
+            return json.jsonify({
+                "message":"用户名可用",
+                "status":1
+            })
+    return json.jsonify({
+        "message":"请输入用户名",
+        "status":0
+    })
+
+
+@app.route('/auth/event/comments',methods=["GET"])
 def get_event_comments():
     event_id = request.args.get("eid")
     event_id = int(event_id)
@@ -207,7 +232,7 @@ def get_event_comments():
         })
 
 
-@app.route('/api/event/comment',methods=["POST"])
+@app.route('/auth/event/comment',methods=["POST"])
 def post_comment():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
@@ -233,7 +258,7 @@ def post_comment():
         })
 
 
-@app.route('/api/token',methods=["POST"])
+@app.route('/auth/token',methods=["POST"])
 def login():
     username = request.json["username"]
     password = request.json["password"]
@@ -252,7 +277,7 @@ def login():
         })
 
 
-@app.route('/api/register',methods=["POST"])
+@app.route('/auth/register',methods=["POST"])
 def register():
     username = request.json["username"]
     password = request.json["password"]
@@ -268,7 +293,7 @@ def register():
         })
 
 
-@app.route('/api/password',methods=["POST"])
+@app.route('/auth/password',methods=["POST"])
 def modify_password():
     username = request.json["username"]
     password = request.json["password"]
@@ -289,7 +314,7 @@ def modify_password():
         })
 
 
-@app.route('/api/event',methods=["POST"])
+@app.route('/auth/event',methods=["POST"])
 def post_event():
     token = request.headers["Authorization"][9:]
     print(token)
@@ -315,7 +340,7 @@ def post_event():
         })
 
 
-@app.route('/api/ground/events',methods=["GET"])
+@app.route('/auth/ground/events',methods=["GET"])
 def ground():
     page_number = request.args.get("pageNumber")
     if not page_number or int(page_number) < 1:
@@ -345,7 +370,7 @@ def ground():
     })
 
 
-@app.route('/api/user/history',methods=["GET"])
+@app.route('/auth/user/history',methods=["GET"])
 def user_history():
     token = request.headers["Authorization"][9:]
     user = check_token(token)
@@ -388,25 +413,5 @@ def user_history():
         })
 
 db.create_all()
-#
 if __name__ == "__main__":
     app.run(port=8000,host="0.0.0.0")
-# event1 = Event("user1","c1",datetime.datetime.now(),datetime.datetime.now(),True,1,True,"title1")
-# event2 = Event("user1","c2",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title2")
-# event3 = Event("user2","c3",datetime.datetime.now(),datetime.datetime.now(),True,2,True,"title3")
-# db.session.add(event1)
-# db.session.add(event2)
-# db.session.add(event3)
-# db.session.commit()
-# comment1 = Comment(comment_author="user1",comment_content="cc1",event_id=1)
-# comment2 = Comment(comment_author="user1",comment_content="cc2",event_id=1)
-# comment3 = Comment(comment_author="user1",comment_content="cc3",event_id=2)
-# comment4 = Comment(comment_author="user2",comment_content="cc3",event_id=1)
-# db.session.add(comment1)
-# db.session.add(comment2)
-# db.session.add(comment3)
-# db.session.add(comment4)
-# db.session.commit()
-# event = Event.query.filter_by(id=1).first()
-# for c in event.event_comments:
-#     print(c.get_dict())

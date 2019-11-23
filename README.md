@@ -292,3 +292,26 @@ headers
   "status": 0
 }
 ```
+
+## /api/username 
+#### method: GET
+示例 : /api/username?username=aaa"
+响应
+```json
+{
+  "message": "用户名已存在",
+  "status": 0
+}
+```
+```json
+{
+  "message": "用户名不能为空",
+  "status": 0
+}
+```
+```json
+{
+  "message": "用户名可用",
+  "status": 1
+}
+```
