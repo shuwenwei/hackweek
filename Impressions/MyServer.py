@@ -155,7 +155,7 @@ def add_user(username,password):
 
 
 def to_datetime(s):
-    date = datetime.datetime.strptime(s,"%Y/%m/%d %H:%M")
+    date = datetime.datetime.strptime(s,"%Y-%m-%d %H:%M")
     return date
 
 
