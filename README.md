@@ -1,7 +1,7 @@
-##status:  
+## status:  
 0： 成功   
 1：失败  
-##code：
+## code：
 1 ：以到达最后一页  
 2：成功且不是最后一页  
 0：没有内容
@@ -74,7 +74,7 @@ headers
 {
   "isPrivate": true,
   "isStory": true,
-  "eventDate": "2019/11/22 11:00",
+  "eventDate": "2019-11-22 11:00",
   "content": "ccc",
   "title": "ttt",
   "placeNumber": 1
