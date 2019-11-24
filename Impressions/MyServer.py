@@ -6,7 +6,6 @@ import datetime
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash,generate_password_hash
 
-
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
@@ -112,9 +111,16 @@ def events_to_dicts(events):
     return dicts
 
 
-def get_public_events(page):
-    public_events = Event.query.filter_by(is_private=False).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
-    return public_events
+def get_public_events(page,place):
+    if not place:
+        place = ""
+    if not place.isdigit():
+        public_events = Event.query.filter_by(is_private=False).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
+        return public_events
+    else:
+        place = int(place)
+        public_events = Event.query.filter_by(is_private=False,place_number=place).order_by(Event.id.desc()).limit(5).offset((page-1)*5).all()
+        return public_events
 
 
 def get_user_all_events(page,username):
@@ -158,6 +164,7 @@ def add_user(username,password):
 def to_datetime(s):
     date = datetime.datetime.strptime(s,"%Y-%m-%d %H:%M")
     return date
+
 
 def datetime_to_str(d):
     s = datetime.datetime.strftime(d,"%Y-%m-%d %H:%M")
@@ -348,13 +355,14 @@ def post_event():
 
 @app.route('/api/ground/events',methods=["GET"])
 def ground():
-    page_number = request.args.get("pageNumber")
-    if not page_number or int(page_number) < 1:
+    page_number = str(request.args.get("pageNumber"))
+    place = str(request.args.get("place"))
+    if (not page_number.isdigit()) or int(page_number) < 1:
         page_number = 1
     else:
         page_number = int(page_number)
-    public_events = get_public_events(page_number)
-    next_length = len(get_public_events(page_number + 1))
+    public_events = get_public_events(page_number,place)
+    next_length = len(get_public_events(page_number + 1,place))
     # code:0 这一页没有活动
     # code:1 以到最后一页
     # code:2 获取成功,且不是最后一页
@@ -420,4 +428,4 @@ def user_history():
 
 db.create_all()
 if __name__ == "__main__":
-    app.run(port=8000,host="0.0.0.0")
+    app.run(port=5000,host="0.0.0.0")
