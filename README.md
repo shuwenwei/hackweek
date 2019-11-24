@@ -89,7 +89,7 @@ headers
 ```
 ## /api/ground/events
 #### method: GET
-示例 /api/ground/events?pageNumber=1,place=1  
+示例 /api/ground/events?pageNumber=1&place=1  
 不加place参数返回所有地点的公开内容
 响应:
 ```json
@@ -107,7 +107,7 @@ headers
             "content": "ccc",
             "event_date": "2019-11-22 11:00",
             "is_private": false,
-            "is_story": 1,
+            "is_story": true,
             "place_number": 1,
             "post_date": "2019-11-22 11:00",
             "title": "tttt",
@@ -118,7 +118,7 @@ headers
             "content": "ccc",
             "event_date": "2019-11-22 11:00",
             "is_private": false,
-            "is_story": 1,
+            "is_story": true,
             "place_number": 1,
             "post_date": "2019-11-22 11:00",
             "title": "tttt",
@@ -147,7 +147,7 @@ headers
             "content": "ccc",
             "event_date": "2019-11-22 11:00",
             "is_private": false,
-            "is_story": 1,
+            "is_story": true,
             "place_number": 1,
             "post_date": "2019-11-22 10:40",
             "title": "tttt",
@@ -158,7 +158,7 @@ headers
             "content": "ccc",
             "event_date": "2019-11-22 11:00",
             "is_private": false,
-            "is_story": 1,
+            "is_story": true,
             "place_number": 1,
             "post_date": "2019-11-22 11:00",
             "title": "tttt",
@@ -169,7 +169,7 @@ headers
             "content": "ccc",
             "event_date": "2019-11-22 11:00",
             "is_private": true,
-            "is_story": 1,
+            "is_story": true,
             "place_number": 1,
             "post_date": "2019-11-22 11:00",
             "title": "tttt",
