@@ -1,4 +1,4 @@
-from flask import Flask,request,json
+from flask import Flask,request,json,render_template
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature,SignatureExpired
 from flask_cors import CORS
@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash,generate_password_hash
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8mb4"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.secret_key = b"1ri1#0f11afejop"
 db = SQLAlchemy(app)
@@ -57,7 +57,7 @@ class Event(db.Model):
     title = db.Column(db.String(50),nullable=False)
     is_private = db.Column(db.Boolean,nullable=False)
     place_number = db.Column(db.Integer,nullable=False)
-    is_story = db.Column(db.Integer,nullable=False)
+    is_story = db.Column(db.Boolean,nullable=False)
 
     def __init__(self,author,content,post_date,event_date,is_private,place_number,is_story,title):
         self.author = author
