@@ -1,10 +1,11 @@
 from flask import Flask,request,json
-from flask_sqlalchemy import SQLAlchemy
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature,SignatureExpired
-import datetime
 from flask_cors import CORS
+import datetime
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash,generate_password_hash
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:s1h2u3j4@localhost/test3?charset=utf8"
@@ -73,8 +74,8 @@ class Event(db.Model):
         return {
             "author":self.author,
             "content":self.content,
-            "event_date":self.event_date,
-            "post_date":self.post_date,
+            "event_date":datetime_to_str(self.event_date),
+            "post_date":datetime_to_str(self.post_date),
             "is_private":self.is_private,
             "place_number":self.place_number,
             "is_story":self.is_story,
@@ -157,6 +158,10 @@ def add_user(username,password):
 def to_datetime(s):
     date = datetime.datetime.strptime(s,"%Y-%m-%d %H:%M")
     return date
+
+def datetime_to_str(d):
+    s = datetime.datetime.strftime(d,"%Y-%m-%d %H:%M")
+    return s
 
 
 def add_comment(eid,content,author):
@@ -279,6 +284,7 @@ def login():
 
 @app.route('/api/register',methods=["POST"])
 def register():
+    print("aefaef")
     username = request.json["username"]
     password = request.json["password"]
     if add_user(username,password):
